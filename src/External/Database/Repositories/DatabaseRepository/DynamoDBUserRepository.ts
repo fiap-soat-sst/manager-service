@@ -18,7 +18,7 @@ export default class DynamoDBUserRepository implements IUserRepository {
         email: string
     ): Promise<Either<Error, { email: string; password: string }>> {
         const params = {
-            TableName: 'users',
+            TableName: process.env.AWS_TABLE_USERS,
             Key: {
                 email,
             },

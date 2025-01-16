@@ -29,6 +29,7 @@ export default class LoginUseCase {
 
         const token = jwt.sign({ email: user.value.email }, SECRET, {
             expiresIn: '30m',
+            algorithm: 'HS256',
         })
 
         return Right({

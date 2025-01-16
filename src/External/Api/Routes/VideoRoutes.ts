@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { makeAuthMiddleware } from '../Middlewares/AuthMiddlewareFactory'
 import multer from 'multer'
 import VideoController from '../../../Controllers/VideoController'
 import UploadUseCase from '../../../UseCases/Video/upload/upload.usecase'
@@ -23,9 +24,11 @@ export default class VideoRoutes {
     buildRouter() {
         const router = Router()
         const upload = multer()
+        const authMiddleware = makeAuthMiddleware()
 
         router.post(
             '/upload',
+            authMiddleware.handle.bind(authMiddleware),
             upload.single('video'),
             this.videoController.uploadVideos.bind(this)
         )
