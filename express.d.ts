@@ -8,5 +8,6 @@ declare module 'express-serve-static-core' {
             size: number
             mimetype: string
         }
+        email?: string
     }
 }

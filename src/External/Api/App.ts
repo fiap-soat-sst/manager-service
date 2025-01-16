@@ -1,9 +1,6 @@
 import express, { Express } from 'express'
-import dotenv from 'dotenv'
 import AuthRoutes from './Routes/AuthRoutes'
 import VideoRoutes from './Routes/VideoRoutes'
-
-dotenv.config()
 
 const getApiRoute = (name: String) => `/api/${name}`
 const app: Express = express()
