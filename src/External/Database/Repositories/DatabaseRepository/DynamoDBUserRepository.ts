@@ -5,7 +5,7 @@ import {
     PutCommand,
 } from '@aws-sdk/lib-dynamodb'
 import IUserRepository from '../Contracts/IUserRepository'
-import { Either, Left, Right } from '../../../../@Shared/Either'
+import { Either, isLeft, Left, Right } from '../../../../@Shared/Either'
 import User from '../../../../Entities/User'
 
 export default class DynamoDBUserRepository implements IUserRepository {
@@ -69,7 +69,7 @@ export default class DynamoDBUserRepository implements IUserRepository {
         )
     }
 
-    async saveVideoUser(user: User, urlBucket: string): Promise<void> {
+    async saveVideoUser(user: User): Promise<void> {
         const item = {
             email: user.email,
             password: user.password,
@@ -79,7 +79,7 @@ export default class DynamoDBUserRepository implements IUserRepository {
                 size: video.size,
                 contentType: video.contentType,
                 managerService: {
-                    url: urlBucket,
+                    url: video.managerService?.url,
                 },
             })),
         }
@@ -90,5 +90,76 @@ export default class DynamoDBUserRepository implements IUserRepository {
                 Item: item,
             })
         )
+    }
+
+    async getVideos(email: string): Promise<
+        Either<
+            Error,
+            {
+                email: string
+                videos: [
+                    {
+                        contentType: string
+                        id: string
+                        name: string
+                        size: number
+                        managerService?: { url: string } | undefined
+                        processService?:
+                            | { images: { url: string }[] }
+                            | undefined
+                        compressService?: { url: string } | undefined
+                    }
+                ]
+            }
+        >
+    > {
+        const user = await this.getUser(email)
+
+        if (isLeft(user)) {
+            return Left<Error>(new Error('Email not found'))
+        }
+
+        const videos = user.value.videos.map((video) => ({
+            id: video.id,
+            name: video.name,
+            size: video.size,
+            contentType: video.contentType,
+            managerService: video.managerService
+                ? {
+                      url: video.managerService.url as string,
+                  }
+                : undefined,
+            processService: video.processService
+                ? {
+                      images: video.processService.images.map((image: any) => ({
+                          url: image.url as string,
+                      })),
+                  }
+                : undefined,
+            compressService: video.compressService
+                ? {
+                      url: video.compressService.url as string,
+                  }
+                : undefined,
+        }))
+
+        if (videos.length === 0) {
+            return Left<Error>(new Error('No videos found'))
+        }
+
+        return Right({
+            email: user.value.email,
+            videos: videos as [
+                {
+                    id: string
+                    name: string
+                    size: number
+                    contentType: string
+                    managerService?: { url: string } | undefined
+                    processService?: { images: { url: string }[] } | undefined
+                    compressService?: { url: string } | undefined
+                }
+            ],
+        })
     }
 }

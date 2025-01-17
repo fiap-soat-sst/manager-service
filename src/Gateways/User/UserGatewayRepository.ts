@@ -17,7 +17,31 @@ export default class UserGatewayRepository implements IUserGatewayRepository {
         return this.repository.createUser(input)
     }
 
-    async saveVideoUser(user: User, urlBucket: string): Promise<void> {
-        return this.repository.saveVideoUser(user, urlBucket)
+    async saveVideoUser(user: User): Promise<void> {
+        return this.repository.saveVideoUser(user)
+    }
+
+    async getVideos(email: string): Promise<
+        Either<
+            Error,
+            {
+                email: string
+                videos: [
+                    {
+                        id: string
+                        name: string
+                        size: number
+                        contentType: string
+                        managerService?: { url: string } | undefined
+                        processService?:
+                            | { images: { url: string }[] }
+                            | undefined
+                        compressService?: { url: string } | undefined
+                    }
+                ]
+            }
+        >
+    > {
+        return this.repository.getVideos(email)
     }
 }
