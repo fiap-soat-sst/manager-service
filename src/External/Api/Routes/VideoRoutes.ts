@@ -5,20 +5,39 @@ import VideoController from '../../../Controllers/VideoController'
 import UploadUseCase from '../../../UseCases/Video/upload/upload.usecase'
 import VideoStorageGateway from '../../../Gateways/Video/VideoStorageGateway'
 import S3StorageProvider from '../../Storage/Provider/S3StorageProvider'
+import UserGatewayRepository from '../../../Gateways/User/UserGatewayRepository'
+import DynamoDBUserRepository from '../../Database/Repositories/DatabaseRepository/DynamoDBUserRepository'
+import { DynamoDBAdapter } from '../../Database/DynamoDbAdapter'
+import SaveVideoDataUseCase from '../../../UseCases/Video/saveVideoData/saveVideoData.usecase'
 
 export default class VideoRoutes {
     private readonly videoController: VideoController
     private readonly uploadVideoUseCase: UploadUseCase
     private readonly videoStorageGateway: VideoStorageGateway
     private readonly videoStorageProvider: S3StorageProvider
+    private readonly userGatewayRepository: UserGatewayRepository
+    private readonly userRepository: DynamoDBUserRepository
+    private readonly adapterRepository: DynamoDBAdapter
+    private readonly saveVideoDataUseCase: SaveVideoDataUseCase
 
     constructor() {
         this.videoStorageProvider = new S3StorageProvider()
         this.videoStorageGateway = new VideoStorageGateway(
             this.videoStorageProvider
         )
+        this.adapterRepository = new DynamoDBAdapter()
+        this.userRepository = new DynamoDBUserRepository(this.adapterRepository)
+        this.userGatewayRepository = new UserGatewayRepository(
+            this.userRepository
+        )
         this.uploadVideoUseCase = new UploadUseCase(this.videoStorageGateway)
-        this.videoController = new VideoController(this.uploadVideoUseCase)
+        this.saveVideoDataUseCase = new SaveVideoDataUseCase(
+            this.userGatewayRepository
+        )
+        this.videoController = new VideoController(
+            this.uploadVideoUseCase,
+            this.saveVideoDataUseCase
+        )
     }
 
     buildRouter() {

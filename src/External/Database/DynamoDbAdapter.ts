@@ -4,18 +4,17 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export class DynamoDBAdapter {
-    private dynamoDB: DynamoDBDocumentClient;
+    private dynamoDB: DynamoDBDocumentClient
 
     constructor() {
         const client = new DynamoDBClient({
             region: process.env.AWS_REGION,
-        });
+        })
 
-        this.dynamoDB = DynamoDBDocumentClient.from(client);
-        console.log('[DynamoDB]: Connection has been established successfully 🚀');
+        this.dynamoDB = DynamoDBDocumentClient.from(client)
     }
 
     public getClient(): DynamoDBDocumentClient {
-        return this.dynamoDB;
+        return this.dynamoDB
     }
 }

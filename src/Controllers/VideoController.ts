@@ -1,10 +1,14 @@
 import { Request, Response } from 'express'
 import UploadUseCase from '../UseCases/Video/upload/upload.usecase'
 import Video from '../Entities/Video'
-import { isLeft } from '../@Shared/Either'
+import { isLeft, Right } from '../@Shared/Either'
+import SaveVideoDataUseCase from '../UseCases/Video/saveVideoData/saveVideoData.usecase'
 
 export default class VideoController {
-    constructor(private readonly uploadVideoUseCase: UploadUseCase) {}
+    constructor(
+        private readonly uploadVideoUseCase: UploadUseCase,
+        private readonly saveVideoDataUseCase: SaveVideoDataUseCase
+    ) {}
 
     async uploadVideos(req: Request, res: Response): Promise<void> {
         const { file } = req
@@ -27,8 +31,17 @@ export default class VideoController {
 
         if (isLeft(result)) {
             res.status(400).json(result.value.message)
-        } else {
-            res.status(201).json(result.value)
+            return
         }
+
+        const url = result.value.url
+
+        await this.saveVideoDataUseCase.execute({
+            email: req.email || '',
+            video,
+            urlBucket: url,
+        })
+
+        res.status(200).json({ message: 'Video uploaded successfully' })
     }
 }
