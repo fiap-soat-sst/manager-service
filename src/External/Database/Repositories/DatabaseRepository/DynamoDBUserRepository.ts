@@ -6,6 +6,7 @@ import {
 } from '@aws-sdk/lib-dynamodb'
 import IUserRepository from '../Contracts/IUserRepository'
 import { Either, Left, Right } from '../../../../@Shared/Either'
+import User from '../../../../Entities/User'
 
 export default class DynamoDBUserRepository implements IUserRepository {
     private client: DynamoDBDocumentClient
@@ -14,9 +15,7 @@ export default class DynamoDBUserRepository implements IUserRepository {
         this.client = adapter.getClient()
     }
 
-    async getUser(
-        email: string
-    ): Promise<Either<Error, { email: string; password: string }>> {
+    async getUser(email: string): Promise<Either<Error, User>> {
         const params = {
             TableName: process.env.AWS_TABLE_USERS,
             Key: {
@@ -34,6 +33,7 @@ export default class DynamoDBUserRepository implements IUserRepository {
             return Right({
                 email: result.Item?.email,
                 password: result.Item?.password,
+                videos: result.Item?.videos,
             })
         } catch (error) {
             return Left<Error>(error as Error)
@@ -63,7 +63,31 @@ export default class DynamoDBUserRepository implements IUserRepository {
                 Item: {
                     email: input.email,
                     password: input.password,
+                    videos: [],
                 },
+            })
+        )
+    }
+
+    async saveVideoUser(user: User, urlBucket: string): Promise<void> {
+        const item = {
+            email: user.email,
+            password: user.password,
+            videos: user.videos.map((video) => ({
+                id: video.id,
+                name: video.name,
+                size: video.size,
+                contentType: video.contentType,
+                managerService: {
+                    url: urlBucket,
+                },
+            })),
+        }
+
+        await this.client.send(
+            new PutCommand({
+                TableName: 'users',
+                Item: item,
             })
         )
     }
