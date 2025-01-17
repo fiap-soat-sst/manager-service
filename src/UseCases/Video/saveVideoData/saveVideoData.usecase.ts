@@ -19,7 +19,7 @@ export default class SaveVideoDataUseCase {
 
         user.value.videos.push(input.video)
 
-        await this.userRepository.saveVideoUser(user.value, input.urlBucket)
+        await this.userRepository.saveVideoUser(user.value)
 
         return Right({
             success: true,

@@ -1,13 +1,16 @@
 import { Request, Response } from 'express'
+import { v4 as uuidv4 } from 'uuid'
 import UploadUseCase from '../UseCases/Video/upload/upload.usecase'
 import Video from '../Entities/Video'
 import { isLeft, Right } from '../@Shared/Either'
 import SaveVideoDataUseCase from '../UseCases/Video/saveVideoData/saveVideoData.usecase'
+import GetVideosUseCase from '../UseCases/Video/getVideos/getVideos.usecase'
 
 export default class VideoController {
     constructor(
         private readonly uploadVideoUseCase: UploadUseCase,
-        private readonly saveVideoDataUseCase: SaveVideoDataUseCase
+        private readonly saveVideoDataUseCase: SaveVideoDataUseCase,
+        private readonly getVideosUseCase: GetVideosUseCase
     ) {}
 
     async uploadVideos(req: Request, res: Response): Promise<void> {
@@ -18,7 +21,7 @@ export default class VideoController {
         }
 
         const video = new Video(
-            Date.now().toString(),
+            uuidv4(),
             file.originalname,
             file.size,
             file.mimetype
@@ -34,14 +37,30 @@ export default class VideoController {
             return
         }
 
-        const url = result.value.url
+        if (!video.managerService) {
+            video.managerService = { url: '' }
+        }
+
+        video.managerService.url = result.value.url
 
         await this.saveVideoDataUseCase.execute({
             email: req.email || '',
             video,
-            urlBucket: url,
         })
 
         res.status(200).json({ message: 'Video uploaded successfully' })
+    }
+
+    async getVideos(req: Request, res: Response): Promise<void> {
+        const result = await this.getVideosUseCase.execute({
+            email: req.email || '',
+        })
+
+        if (isLeft(result)) {
+            res.status(400).json(result.value.message)
+            return
+        }
+
+        res.status(200).json(result.value)
     }
 }

@@ -9,6 +9,7 @@ import UserGatewayRepository from '../../../Gateways/User/UserGatewayRepository'
 import DynamoDBUserRepository from '../../Database/Repositories/DatabaseRepository/DynamoDBUserRepository'
 import { DynamoDBAdapter } from '../../Database/DynamoDbAdapter'
 import SaveVideoDataUseCase from '../../../UseCases/Video/saveVideoData/saveVideoData.usecase'
+import GetVideosUseCase from '../../../UseCases/Video/getVideos/getVideos.usecase'
 
 export default class VideoRoutes {
     private readonly videoController: VideoController
@@ -19,6 +20,7 @@ export default class VideoRoutes {
     private readonly userRepository: DynamoDBUserRepository
     private readonly adapterRepository: DynamoDBAdapter
     private readonly saveVideoDataUseCase: SaveVideoDataUseCase
+    private readonly getVideosUseCase: GetVideosUseCase
 
     constructor() {
         this.videoStorageProvider = new S3StorageProvider()
@@ -34,9 +36,11 @@ export default class VideoRoutes {
         this.saveVideoDataUseCase = new SaveVideoDataUseCase(
             this.userGatewayRepository
         )
+        this.getVideosUseCase = new GetVideosUseCase(this.userGatewayRepository)
         this.videoController = new VideoController(
             this.uploadVideoUseCase,
-            this.saveVideoDataUseCase
+            this.saveVideoDataUseCase,
+            this.getVideosUseCase
         )
     }
 
@@ -44,6 +48,12 @@ export default class VideoRoutes {
         const router = Router()
         const upload = multer()
         const authMiddleware = makeAuthMiddleware()
+
+        router.get(
+            '/',
+            authMiddleware.handle.bind(authMiddleware),
+            this.videoController.getVideos.bind(this)
+        )
 
         router.post(
             '/upload',
