@@ -4,6 +4,7 @@ export default class Video {
         public readonly name: string,
         public readonly size: number,
         public readonly contentType: string,
+        public readonly hash: string,
         public managerService?: { url: string } | undefined,
         public processService?: { images: { url: string }[] } | undefined,
         public compressService?: { url: string } | undefined
