@@ -163,4 +163,18 @@ export default class DynamoDBUserRepository implements IUserRepository {
             ],
         })
     }
+
+    async videoExists(email: string, hash: string): Promise<boolean> {
+        const result = await this.client.send(
+            new GetCommand({
+                TableName: process.env.AWS_TABLE_USERS,
+                Key: { email },
+                ProjectionExpression: 'videos',
+            })
+        )
+
+        const videos = result.Item?.videos ?? []
+
+        return videos.some((video: { hash: string }) => video.hash === hash)
+    }
 }

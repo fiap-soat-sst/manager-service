@@ -26,4 +26,5 @@ export default interface IUserRepository {
             }
         >
     >
+    videoExists(email: string, hash: string): Promise<boolean>
 }

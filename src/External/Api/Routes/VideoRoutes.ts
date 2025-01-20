@@ -10,6 +10,7 @@ import DynamoDBUserRepository from '../../Database/Repositories/DatabaseReposito
 import { DynamoDBAdapter } from '../../Database/DynamoDbAdapter'
 import SaveVideoDataUseCase from '../../../UseCases/Video/saveVideoData/saveVideoData.usecase'
 import GetVideosUseCase from '../../../UseCases/Video/getVideos/getVideos.usecase'
+import CheckVideoHashUseCase from '../../../UseCases/Video/CheckVideo/CheckVideoHash.usecase'
 
 export default class VideoRoutes {
     private readonly videoController: VideoController
@@ -21,6 +22,7 @@ export default class VideoRoutes {
     private readonly adapterRepository: DynamoDBAdapter
     private readonly saveVideoDataUseCase: SaveVideoDataUseCase
     private readonly getVideosUseCase: GetVideosUseCase
+    private readonly checkVideoHashUseCase: CheckVideoHashUseCase
 
     constructor() {
         this.videoStorageProvider = new S3StorageProvider()
@@ -37,10 +39,14 @@ export default class VideoRoutes {
             this.userGatewayRepository
         )
         this.getVideosUseCase = new GetVideosUseCase(this.userGatewayRepository)
+        this.checkVideoHashUseCase = new CheckVideoHashUseCase(
+            this.userGatewayRepository
+        )
         this.videoController = new VideoController(
             this.uploadVideoUseCase,
             this.saveVideoDataUseCase,
-            this.getVideosUseCase
+            this.getVideosUseCase,
+            this.checkVideoHashUseCase
         )
     }
 
