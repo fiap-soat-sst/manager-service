@@ -6,12 +6,14 @@ import { isLeft, Right } from '../@Shared/Either'
 import SaveVideoDataUseCase from '../UseCases/Video/saveVideoData/saveVideoData.usecase'
 import GetVideosUseCase from '../UseCases/Video/getVideos/getVideos.usecase'
 import { generateHashFromBuffer } from '../@Shared/Crypto'
+import CheckVideoHashUseCase from '../UseCases/Video/CheckVideo/CheckVideoHash.usecase'
 
 export default class VideoController {
     constructor(
         private readonly uploadVideoUseCase: UploadUseCase,
         private readonly saveVideoDataUseCase: SaveVideoDataUseCase,
-        private readonly getVideosUseCase: GetVideosUseCase
+        private readonly getVideosUseCase: GetVideosUseCase,
+        private readonly checkVideoHashUseCase: CheckVideoHashUseCase
     ) {}
 
     async uploadVideos(req: Request, res: Response): Promise<void> {
@@ -22,6 +24,16 @@ export default class VideoController {
         }
 
         const fileHash = generateHashFromBuffer(file.buffer)
+
+        const checkVideoHash = await this.checkVideoHashUseCase.execute({
+            email: req.email || '',
+            hash: fileHash,
+        })
+
+        if (checkVideoHash && checkVideoHash.exists) {
+            res.status(400).json({ message: 'Video already exists' })
+            return
+        }
 
         const video = new Video(
             uuidv4(),

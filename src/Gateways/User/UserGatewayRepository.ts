@@ -44,4 +44,8 @@ export default class UserGatewayRepository implements IUserGatewayRepository {
     > {
         return this.repository.getVideos(email)
     }
+
+    async videoExists(email: string, hash: string): Promise<boolean> {
+        return this.repository.videoExists(email, hash)
+    }
 }
