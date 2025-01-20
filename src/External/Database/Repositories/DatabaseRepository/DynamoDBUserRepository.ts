@@ -78,6 +78,7 @@ export default class DynamoDBUserRepository implements IUserRepository {
                 name: video.name,
                 size: video.size,
                 contentType: video.contentType,
+                hash: video.hash,
                 managerService: {
                     url: video.managerService?.url,
                 },

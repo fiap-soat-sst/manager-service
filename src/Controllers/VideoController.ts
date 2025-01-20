@@ -5,6 +5,7 @@ import Video from '../Entities/Video'
 import { isLeft, Right } from '../@Shared/Either'
 import SaveVideoDataUseCase from '../UseCases/Video/saveVideoData/saveVideoData.usecase'
 import GetVideosUseCase from '../UseCases/Video/getVideos/getVideos.usecase'
+import { generateHashFromBuffer } from '../@Shared/Crypto'
 
 export default class VideoController {
     constructor(
@@ -20,11 +21,14 @@ export default class VideoController {
             return
         }
 
+        const fileHash = generateHashFromBuffer(file.buffer)
+
         const video = new Video(
             uuidv4(),
             file.originalname,
             file.size,
-            file.mimetype
+            file.mimetype,
+            fileHash
         )
 
         const result = await this.uploadVideoUseCase.execute({
