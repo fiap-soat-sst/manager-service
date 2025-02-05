@@ -7,13 +7,15 @@ import SaveVideoDataUseCase from '../UseCases/Video/saveVideoData/saveVideoData.
 import GetVideosUseCase from '../UseCases/Video/getVideos/getVideos.usecase'
 import { generateHashFromBuffer } from '../@Shared/Crypto'
 import CheckVideoHashUseCase from '../UseCases/Video/CheckVideo/CheckVideoHash.usecase'
+import PublishUseCase from '../UseCases/Queue/publish/publish.usecase'
 
 export default class VideoController {
     constructor(
         private readonly uploadVideoUseCase: UploadUseCase,
         private readonly saveVideoDataUseCase: SaveVideoDataUseCase,
         private readonly getVideosUseCase: GetVideosUseCase,
-        private readonly checkVideoHashUseCase: CheckVideoHashUseCase
+        private readonly checkVideoHashUseCase: CheckVideoHashUseCase,
+        private readonly publishUseCase: PublishUseCase
     ) {}
 
     async uploadVideos(req: Request, res: Response): Promise<void> {
@@ -62,6 +64,14 @@ export default class VideoController {
         await this.saveVideoDataUseCase.execute({
             email: req.email || '',
             video,
+        })
+
+        await this.publishUseCase.execute({
+            topic: process.env.AWS_SNS_TOPIC || '',
+            message: JSON.stringify({
+                email: req.email || '',
+                video,
+            }),
         })
 
         res.status(200).json({ message: 'Video uploaded successfully' })

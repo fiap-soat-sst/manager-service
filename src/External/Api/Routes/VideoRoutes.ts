@@ -11,6 +11,9 @@ import { DynamoDBAdapter } from '../../Database/DynamoDbAdapter'
 import SaveVideoDataUseCase from '../../../UseCases/Video/saveVideoData/saveVideoData.usecase'
 import GetVideosUseCase from '../../../UseCases/Video/getVideos/getVideos.usecase'
 import CheckVideoHashUseCase from '../../../UseCases/Video/CheckVideo/CheckVideoHash.usecase'
+import SNSQueueProvider from '../../Queue/Provider/SNSQueueProvider'
+import PublishUseCase from '../../../UseCases/Queue/publish/publish.usecase'
+import QueueGateway from '../../../Gateways/Queue/queueGateway'
 
 export default class VideoRoutes {
     private readonly videoController: VideoController
@@ -23,6 +26,9 @@ export default class VideoRoutes {
     private readonly saveVideoDataUseCase: SaveVideoDataUseCase
     private readonly getVideosUseCase: GetVideosUseCase
     private readonly checkVideoHashUseCase: CheckVideoHashUseCase
+    private readonly queueProvider: SNSQueueProvider
+    private readonly queueGateway: QueueGateway
+    private readonly publishUseCase: PublishUseCase
 
     constructor() {
         this.videoStorageProvider = new S3StorageProvider()
@@ -42,11 +48,15 @@ export default class VideoRoutes {
         this.checkVideoHashUseCase = new CheckVideoHashUseCase(
             this.userGatewayRepository
         )
+        this.queueProvider = new SNSQueueProvider()
+        this.queueGateway = new QueueGateway(this.queueProvider)
+        this.publishUseCase = new PublishUseCase(this.queueGateway)
         this.videoController = new VideoController(
             this.uploadVideoUseCase,
             this.saveVideoDataUseCase,
             this.getVideosUseCase,
-            this.checkVideoHashUseCase
+            this.checkVideoHashUseCase,
+            this.publishUseCase
         )
     }
 
