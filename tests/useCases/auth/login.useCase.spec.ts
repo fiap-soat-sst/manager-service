@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, Mock } from 'vitest'
 import LoginUseCase from '../../../src/UseCases/Auth/login/login.usecase'
-import { Left, Right } from '../../../src/@Shared/Either'
+import { Either, Left, Right } from '../../../src/@Shared/Either'
 import IUserGatewayRepository from '../../../src/Gateways/Contracts/IUserGatewayRepository'
 import { InputLoginDto } from '../../../src/UseCases/Auth/login/login.dto'
 import { compare } from '../../../src/@Shared/Crypto'
 import jwt from 'jsonwebtoken'
+import User from '../../../src/Entities/User'
 
 // Mockando os módulos
 vi.mock('../../../src/@Shared/Crypto', () => ({
@@ -17,6 +18,9 @@ describe('LoginUseCase', () => {
     const userRepository: IUserGatewayRepository = {
         getUser: vi.fn(),
         createUser: vi.fn(),
+        saveVideoUser: vi.fn(),
+        getVideos: vi.fn(),
+        videoExists: vi.fn(),
     }
 
     const loginUseCase = new LoginUseCase(userRepository)

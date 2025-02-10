@@ -14,6 +14,10 @@ describe('RegisterUseCase', () => {
     const userRepository: IUserGatewayRepository = {
         getUser: vi.fn(),
         createUser: vi.fn(),
+        saveVideoUser: vi.fn(),
+        getVideos: vi.fn(),
+        videoExists: vi.fn(),
+
     }
 
     const registerUseCase = new RegisterUseCase(userRepository)
